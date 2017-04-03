@@ -19,7 +19,9 @@ import com.connectsdk.device.ConnectableDeviceListener;
 import com.connectsdk.device.DevicePicker;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.service.DeviceService;
+import com.connectsdk.service.capability.Launcher;
 import com.connectsdk.service.command.ServiceCommandError;
+import com.connectsdk.service.sessions.LaunchSession;
 
 import java.util.List;
 
@@ -35,6 +37,17 @@ public class MainActivity extends Activity {
     AlertDialog pairingAlertDialog;
     AlertDialog dialog;
     AlertDialog pairingCodeDialog;
+    private Launcher launcher;
+
+    @Bind(R.id.youtubeWithBrowser)
+    Button youtubeWithBrowser;
+
+    @Bind(R.id.connect)
+    Button youtube1;
+
+
+    @Bind(R.id.connect)
+    Button youtube2;
 
     @Bind(R.id.connect)
     Button connect;
@@ -46,11 +59,51 @@ public class MainActivity extends Activity {
         ButterKnife.bind(this);
         setupPicker();
         initDiscoverManager();
+        launcher = mTV.getCapability(Launcher.class);
     }
-    
+    @OnClick(R.id.youtubeWithBrowser)
+    public void setYoutubeWithBrowserOnClick() {
+        launchBrowser("https://www.youtube.com/watch?v=26WBT1ZdLdc&list=PLLK3b9Lk333IbQWdda9r7JNLCS0uuwUlt&index=2");
+    }
+
+
     @OnClick(R.id.connect)
     public void setConnectOnClick() {
-       dialog.show();
+        dialog.show();
+    }
+
+    @OnClick(R.id.youtube1)
+    public void setYoutube1OnClick() {
+        launchYoutube("eRsGyueVLvQ");
+    }
+
+    private void launchBrowser(String url) {
+        getLauncher().launchBrowser(url, new Launcher.AppLaunchListener() {
+
+            public void onSuccess(LaunchSession session) {
+            }
+
+            public void onError(ServiceCommandError error) {
+            }
+        });
+    }
+
+    private void launchYoutube(String contentId) {
+        getLauncher().launchYouTube(contentId, new Launcher.AppLaunchListener() {
+
+            @Override
+            public void onSuccess(LaunchSession session) {
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+            }
+        });
+    }
+
+    @OnClick(R.id.youtube2)
+    public void setYoutube2OnClick() {
+        launchYoutube("PLLK3b9Lk333IbQWdda9r7JNLCS0uuwUlt");
     }
 
     private ConnectableDeviceListener deviceListener = new ConnectableDeviceListener() {
@@ -76,6 +129,7 @@ public class MainActivity extends Activity {
                     break;
             }
         }
+
         void connectFailed(ConnectableDevice device) {
             if (device != null)
                 Log.d(TAG, "Failed to connect to " + device.getIpAddress());
@@ -86,6 +140,7 @@ public class MainActivity extends Activity {
                 mTV = null;
             }
         }
+
         void connectEnded(ConnectableDevice device) {
             if (pairingAlertDialog.isShowing()) {
                 pairingAlertDialog.dismiss();
@@ -99,7 +154,7 @@ public class MainActivity extends Activity {
 
         @Override
         public void onConnectionFailed(ConnectableDevice device, ServiceCommandError error) {
-            Log.d(TAG, "onConnectFailed " +error.toString() );
+            Log.d(TAG, "onConnectFailed " + error.toString());
             connectFailed(mTV);
         }
 
@@ -126,7 +181,8 @@ public class MainActivity extends Activity {
 
         }
     };
-    private void  initDiscoverManager(){
+
+    private void initDiscoverManager() {
         DiscoveryManager.getInstance().registerDefaultDeviceTypes();
         DiscoveryManager.getInstance().setPairingLevel(DiscoveryManager.PairingLevel.ON);
         DiscoveryManager.getInstance().start();
@@ -139,7 +195,7 @@ public class MainActivity extends Activity {
             @Override
             public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
 
-                mTV = (ConnectableDevice)arg0.getItemAtPosition(arg2);
+                mTV = (ConnectableDevice) arg0.getItemAtPosition(arg2);
                 mTV.addListener(deviceListener);
                 mTV.setPairingType(null);
                 mTV.connect();
@@ -164,7 +220,7 @@ public class MainActivity extends Activity {
         final EditText input = new EditText(this);
         input.setInputType(InputType.TYPE_CLASS_TEXT);
 
-        final InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+        final InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
         pairingCodeDialog = new AlertDialog.Builder(this)
                 .setTitle("Enter Pairing Code on TV")
@@ -189,5 +245,9 @@ public class MainActivity extends Activity {
                     }
                 })
                 .create();
+    }
+
+    public Launcher getLauncher() {
+        return launcher;
     }
 }
