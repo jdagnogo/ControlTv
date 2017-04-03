@@ -4,6 +4,9 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.nfc.NfcAdapter;
+import android.nfc.Tag;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
@@ -22,6 +25,7 @@ import com.connectsdk.service.DeviceService;
 import com.connectsdk.service.capability.Launcher;
 import com.connectsdk.service.command.ServiceCommandError;
 import com.connectsdk.service.sessions.LaunchSession;
+import com.jeff.controltvbyjeff.services.NFCService;
 
 import java.util.List;
 
@@ -42,30 +46,48 @@ public class MainActivity extends Activity {
     @Bind(R.id.youtubeWithBrowser)
     Button youtubeWithBrowser;
 
-    @Bind(R.id.connect)
+    @Bind(R.id.youtube1)
     Button youtube1;
 
 
-    @Bind(R.id.connect)
+    @Bind(R.id.youtube2)
     Button youtube2;
 
     @Bind(R.id.connect)
     Button connect;
 
+    private NFCService nfcService;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         setupPicker();
+        nfcService = new NFCService();
         initDiscoverManager();
-        launcher = mTV.getCapability(Launcher.class);
+
     }
     @OnClick(R.id.youtubeWithBrowser)
     public void setYoutubeWithBrowserOnClick() {
         launchBrowser("https://www.youtube.com/watch?v=26WBT1ZdLdc&list=PLLK3b9Lk333IbQWdda9r7JNLCS0uuwUlt&index=2");
     }
 
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+        final String tagId = removeSpace(nfcService.getTagID(tag));
+        if (intent.hasExtra(NfcAdapter.EXTRA_TAG)) {
+            String content = nfcService.read(intent);
+            Toast.makeText(ControlTvApplication.getAppContext(), content, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private String removeSpace(String string) {
+        String str = string.replaceAll("\\s+","");
+        Log.e(TAG, "without space : "+str);
+        return str;
+    }
 
     @OnClick(R.id.connect)
     public void setConnectOnClick() {
@@ -111,7 +133,7 @@ public class MainActivity extends Activity {
         @Override
         public void onPairingRequired(ConnectableDevice device, DeviceService service, DeviceService.PairingType pairingType) {
             Log.d(TAG, "Connected to " + mTV.getIpAddress());
-
+            launcher = mTV.getCapability(Launcher.class);
             switch (pairingType) {
                 case FIRST_SCREEN:
                     Log.d(TAG, "First Screen");
