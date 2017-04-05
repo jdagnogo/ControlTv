@@ -8,13 +8,19 @@ import android.content.Intent;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.InputType;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.connectsdk.device.ConnectableDevice;
@@ -23,8 +29,10 @@ import com.connectsdk.device.DevicePicker;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.service.DeviceService;
 import com.connectsdk.service.capability.Launcher;
+import com.connectsdk.service.capability.VolumeControl;
 import com.connectsdk.service.command.ServiceCommandError;
 import com.connectsdk.service.sessions.LaunchSession;
+import com.jeff.controltvbyjeff.customlibs.CircularSeekBar;
 import com.jeff.controltvbyjeff.services.NFCService;
 
 import java.util.List;
@@ -33,11 +41,12 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity {
 
     ConnectableDevice mTV;
     private final static String TAG = MainActivity.class.getSimpleName();
     DevicePicker dp;
+    private VolumeControl volumeControl;
     AlertDialog pairingAlertDialog;
     AlertDialog dialog;
     AlertDialog pairingCodeDialog;
@@ -46,27 +55,35 @@ public class MainActivity extends Activity {
     @Bind(R.id.youtubeWithBrowser)
     Button youtubeWithBrowser;
 
-    @Bind(R.id.youtube1)
-    Button youtube1;
-
-
-    @Bind(R.id.youtube2)
-    Button youtube2;
-
-    @Bind(R.id.connect)
-    Button connect;
+    private TextView volumeStatus;
 
     private NFCService nfcService;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         ButterKnife.bind(this);
         setupPicker();
         nfcService = new NFCService();
         initDiscoverManager();
+        initView();
 
     }
+
+    private void initView() {
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        setSupportActionBar(myToolbar);
+        volumeStatus = (TextView) findViewById(R.id.volume_status);
+        CircularSeekBar seekbar = (CircularSeekBar) findViewById(R.id.circularSeekBar1);
+        seekbar.getProgress();
+        seekbar.setProgress(50);
+        seekbar.setOnSeekBarChangeListener(new CircleSeekBarListener());
+
+
+    }
+
     @OnClick(R.id.youtubeWithBrowser)
     public void setYoutubeWithBrowserOnClick() {
         launchBrowser("https://www.youtube.com/watch?v=26WBT1ZdLdc&list=PLLK3b9Lk333IbQWdda9r7JNLCS0uuwUlt&index=2");
@@ -83,21 +100,34 @@ public class MainActivity extends Activity {
         }
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_connexion:
+                dialog.show();
+                return true;
+
+            default:
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                return super.onOptionsItemSelected(item);
+
+        }
+    }
+
     private String removeSpace(String string) {
-        String str = string.replaceAll("\\s+","");
-        Log.e(TAG, "without space : "+str);
+        String str = string.replaceAll("\\s+", "");
+        Log.e(TAG, "without space : " + str);
         return str;
     }
 
-    @OnClick(R.id.connect)
-    public void setConnectOnClick() {
-        dialog.show();
-    }
-
-    @OnClick(R.id.youtube1)
-    public void setYoutube1OnClick() {
-        launchYoutube("eRsGyueVLvQ");
-    }
 
     private void launchBrowser(String url) {
         getLauncher().launchBrowser(url, new Launcher.AppLaunchListener() {
@@ -110,30 +140,13 @@ public class MainActivity extends Activity {
         });
     }
 
-    private void launchYoutube(String contentId) {
-        getLauncher().launchYouTube(contentId, new Launcher.AppLaunchListener() {
-
-            @Override
-            public void onSuccess(LaunchSession session) {
-            }
-
-            @Override
-            public void onError(ServiceCommandError error) {
-            }
-        });
-    }
-
-    @OnClick(R.id.youtube2)
-    public void setYoutube2OnClick() {
-        launchYoutube("PLLK3b9Lk333IbQWdda9r7JNLCS0uuwUlt");
-    }
-
     private ConnectableDeviceListener deviceListener = new ConnectableDeviceListener() {
 
         @Override
         public void onPairingRequired(ConnectableDevice device, DeviceService service, DeviceService.PairingType pairingType) {
             Log.d(TAG, "Connected to " + mTV.getIpAddress());
             launcher = mTV.getCapability(Launcher.class);
+            volumeControl = mTV.getCapability(VolumeControl.class);
             switch (pairingType) {
                 case FIRST_SCREEN:
                     Log.d(TAG, "First Screen");
@@ -271,5 +284,27 @@ public class MainActivity extends Activity {
 
     public Launcher getLauncher() {
         return launcher;
+    }
+    public VolumeControl getVolumeControl()
+    {
+        return volumeControl;
+    }
+    public class CircleSeekBarListener implements CircularSeekBar.OnCircularSeekBarChangeListener {
+        @Override
+        public void onProgressChanged(CircularSeekBar circularSeekBar, int progress, boolean fromUser) {
+            // TODO Insert your code here
+            volumeStatus.setText(Integer.toString(progress));
+        }
+
+        @Override
+        public void onStopTrackingTouch(CircularSeekBar seekBar) {
+            Log.d(TAG, "volume change : " + seekBar.getProgress());
+            getVolumeControl().setVolume((float) seekBar.getProgress() / 100.0f, null);
+        }
+
+        @Override
+        public void onStartTrackingTouch(CircularSeekBar seekBar) {
+
+        }
     }
 }

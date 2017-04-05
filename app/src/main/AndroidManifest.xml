@@ -15,8 +15,8 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:name=".ControlTvApplication"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        android:name=".ControlTvApplication">
         <activity android:name=".MainActivity"
             android:screenOrientation="portrait">
             <intent-filter>
