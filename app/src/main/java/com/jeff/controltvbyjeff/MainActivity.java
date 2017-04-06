@@ -20,6 +20,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,6 +30,7 @@ import com.connectsdk.device.DevicePicker;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.service.DeviceService;
 import com.connectsdk.service.capability.Launcher;
+import com.connectsdk.service.capability.ToastControl;
 import com.connectsdk.service.capability.VolumeControl;
 import com.connectsdk.service.command.ServiceCommandError;
 import com.connectsdk.service.sessions.LaunchSession;
@@ -49,11 +51,18 @@ public class MainActivity extends AppCompatActivity {
     private VolumeControl volumeControl;
     AlertDialog pairingAlertDialog;
     AlertDialog dialog;
+    private ToastControl toastControl;
     AlertDialog pairingCodeDialog;
     private Launcher launcher;
-
+    private CircularSeekBar seekbar;
     @Bind(R.id.youtubeWithBrowser)
     Button youtubeWithBrowser;
+
+    @Bind(R.id.edit_toast)
+    EditText editToast;
+
+    @Bind(R.id.send_toast)
+    ImageButton sendToast;
 
     private TextView volumeStatus;
 
@@ -76,7 +85,8 @@ public class MainActivity extends AppCompatActivity {
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
         volumeStatus = (TextView) findViewById(R.id.volume_status);
-        CircularSeekBar seekbar = (CircularSeekBar) findViewById(R.id.circularSeekBar1);
+        //handle when it is not connected with TV
+        seekbar = (CircularSeekBar) findViewById(R.id.circularSeekBar1);
         seekbar.getProgress();
         seekbar.setProgress(50);
         seekbar.setOnSeekBarChangeListener(new CircleSeekBarListener());
@@ -89,6 +99,10 @@ public class MainActivity extends AppCompatActivity {
         launchBrowser("https://www.youtube.com/watch?v=26WBT1ZdLdc&list=PLLK3b9Lk333IbQWdda9r7JNLCS0uuwUlt&index=2");
     }
 
+    @OnClick(R.id.send_toast)
+    public void setSendToast(){
+        getToastControl().showToast(editToast.getText().toString(), null, null, null);
+    }
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -146,6 +160,7 @@ public class MainActivity extends AppCompatActivity {
         public void onPairingRequired(ConnectableDevice device, DeviceService service, DeviceService.PairingType pairingType) {
             Log.d(TAG, "Connected to " + mTV.getIpAddress());
             launcher = mTV.getCapability(Launcher.class);
+            toastControl = mTV.getCapability(ToastControl.class);
             volumeControl = mTV.getCapability(VolumeControl.class);
             switch (pairingType) {
                 case FIRST_SCREEN:
@@ -187,6 +202,8 @@ public class MainActivity extends AppCompatActivity {
             mTV = null;
         }
 
+
+
         @Override
         public void onConnectionFailed(ConnectableDevice device, ServiceCommandError error) {
             Log.d(TAG, "onConnectFailed " + error.toString());
@@ -216,7 +233,9 @@ public class MainActivity extends AppCompatActivity {
 
         }
     };
-
+    public ToastControl getToastControl() {
+        return toastControl;
+    }
     private void initDiscoverManager() {
         DiscoveryManager.getInstance().registerDefaultDeviceTypes();
         DiscoveryManager.getInstance().setPairingLevel(DiscoveryManager.PairingLevel.ON);
@@ -285,15 +304,17 @@ public class MainActivity extends AppCompatActivity {
     public Launcher getLauncher() {
         return launcher;
     }
-    public VolumeControl getVolumeControl()
-    {
+
+    public VolumeControl getVolumeControl() {
         return volumeControl;
     }
+
     public class CircleSeekBarListener implements CircularSeekBar.OnCircularSeekBarChangeListener {
         @Override
         public void onProgressChanged(CircularSeekBar circularSeekBar, int progress, boolean fromUser) {
             // TODO Insert your code here
             volumeStatus.setText(Integer.toString(progress));
+
         }
 
         @Override
@@ -307,4 +328,5 @@ public class MainActivity extends AppCompatActivity {
 
         }
     }
+
 }
