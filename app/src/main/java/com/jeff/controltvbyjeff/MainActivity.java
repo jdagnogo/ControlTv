@@ -1,6 +1,5 @@
 package com.jeff.controltvbyjeff;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -43,6 +42,9 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
+import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
+import static android.view.MenuItem.SHOW_AS_ACTION_NEVER;
+
 public class MainActivity extends AppCompatActivity {
 
     ConnectableDevice mTV;
@@ -54,9 +56,11 @@ public class MainActivity extends AppCompatActivity {
     private ToastControl toastControl;
     AlertDialog pairingCodeDialog;
     private Launcher launcher;
+    boolean isStartedFromNfc = false;
     private CircularSeekBar seekbar;
     @Bind(R.id.youtubeWithBrowser)
     Button youtubeWithBrowser;
+    private Toolbar myToolbar;
 
     @Bind(R.id.edit_toast)
     EditText editToast;
@@ -80,9 +84,12 @@ public class MainActivity extends AppCompatActivity {
         initView();
 
     }
+    private Toolbar getMyToolbar(){
+        return myToolbar;
+    }
 
     private void initView() {
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
         volumeStatus = (TextView) findViewById(R.id.volume_status);
         //handle when it is not connected with TV
@@ -100,13 +107,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @OnClick(R.id.send_toast)
-    public void setSendToast(){
+    public void setSendToast() {
         getToastControl().showToast(editToast.getText().toString(), null, null, null);
     }
+
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+        isStartedFromNfc = true;
         final String tagId = removeSpace(nfcService.getTagID(tag));
         if (intent.hasExtra(NfcAdapter.EXTRA_TAG)) {
             String content = nfcService.read(intent);
@@ -143,6 +152,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
     private void launchBrowser(String url) {
         getLauncher().launchBrowser(url, new Launcher.AppLaunchListener() {
 
@@ -158,10 +172,6 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onPairingRequired(ConnectableDevice device, DeviceService service, DeviceService.PairingType pairingType) {
-            Log.d(TAG, "Connected to " + mTV.getIpAddress());
-            launcher = mTV.getCapability(Launcher.class);
-            toastControl = mTV.getCapability(ToastControl.class);
-            volumeControl = mTV.getCapability(VolumeControl.class);
             switch (pairingType) {
                 case FIRST_SCREEN:
                     Log.d(TAG, "First Screen");
@@ -203,7 +213,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-
         @Override
         public void onConnectionFailed(ConnectableDevice device, ServiceCommandError error) {
             Log.d(TAG, "onConnectFailed " + error.toString());
@@ -219,12 +228,26 @@ public class MainActivity extends AppCompatActivity {
             if (pairingCodeDialog.isShowing()) {
                 pairingCodeDialog.dismiss();
             }
+            initLauncher();
+            getMyToolbar().getMenu().findItem(R.id.action_connexion).setShowAsAction(SHOW_AS_ACTION_NEVER);
+
+        }
+
+        private void initLauncher() {
+            launcher = mTV.getCapability(Launcher.class);
+            toastControl = mTV.getCapability(ToastControl.class);
+            volumeControl = mTV.getCapability(VolumeControl.class);
+            Toast.makeText(getApplicationContext(), "Connexion ok", Toast.LENGTH_SHORT).show();
+            if (isStartedFromNfc) {
+                setYoutubeWithBrowserOnClick();
+            }
         }
 
         @Override
         public void onDeviceDisconnected(ConnectableDevice device) {
             Log.d(TAG, "Device Disconnected");
             connectEnded(mTV);
+            getMyToolbar().getMenu().findItem(R.id.action_connexion).setShowAsAction(SHOW_AS_ACTION_ALWAYS);
             Toast.makeText(getApplicationContext(), "Device Disconnected", Toast.LENGTH_SHORT).show();
         }
 
@@ -233,9 +256,11 @@ public class MainActivity extends AppCompatActivity {
 
         }
     };
+
     public ToastControl getToastControl() {
         return toastControl;
     }
+
     private void initDiscoverManager() {
         DiscoveryManager.getInstance().registerDefaultDeviceTypes();
         DiscoveryManager.getInstance().setPairingLevel(DiscoveryManager.PairingLevel.ON);
@@ -245,6 +270,8 @@ public class MainActivity extends AppCompatActivity {
     private void setupPicker() {
         dp = new DevicePicker(this);
         dialog = dp.getPickerDialog("Device List", new AdapterView.OnItemClickListener() {
+
+
 
             @Override
             public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
