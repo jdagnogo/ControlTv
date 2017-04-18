@@ -1,11 +1,11 @@
 package com.jeff.controltvbyjeff;
 
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.nfc.NfcAdapter;
-import android.nfc.Tag;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -17,7 +17,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -35,6 +34,7 @@ import com.connectsdk.service.command.ServiceCommandError;
 import com.connectsdk.service.sessions.LaunchSession;
 import com.jeff.controltvbyjeff.customlibs.CircularSeekBar;
 import com.jeff.controltvbyjeff.services.NFCService;
+import com.tapadoo.alerter.Alerter;
 
 import java.util.List;
 
@@ -44,6 +44,7 @@ import butterknife.OnClick;
 
 import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
 import static android.view.MenuItem.SHOW_AS_ACTION_NEVER;
+import static com.jeff.controltvbyjeff.Constants.YOUTBE_URL;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -57,10 +58,10 @@ public class MainActivity extends AppCompatActivity {
     AlertDialog pairingCodeDialog;
     private Launcher launcher;
     boolean isStartedFromNfc = false;
+    boolean isAlreadyConnected = false;
     private CircularSeekBar seekbar;
-    @Bind(R.id.youtubeWithBrowser)
-    Button youtubeWithBrowser;
     private Toolbar myToolbar;
+    PendingIntent mPendingIntent;
 
     @Bind(R.id.edit_toast)
     EditText editToast;
@@ -71,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView volumeStatus;
 
     private NFCService nfcService;
+    private NfcAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,8 +85,17 @@ public class MainActivity extends AppCompatActivity {
         initDiscoverManager();
         initView();
 
+        mAdapter = NfcAdapter.getDefaultAdapter(this);
+        if (mAdapter == null) {
+            //nfc not support your device.
+            return;
+        }
+        mPendingIntent = PendingIntent.getActivity(this, 0, new Intent(this,
+                getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
+
     }
-    private Toolbar getMyToolbar(){
+
+    private Toolbar getMyToolbar() {
         return myToolbar;
     }
 
@@ -101,9 +112,8 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    @OnClick(R.id.youtubeWithBrowser)
     public void setYoutubeWithBrowserOnClick() {
-        launchBrowser("https://www.youtube.com/watch?v=26WBT1ZdLdc&list=PLLK3b9Lk333IbQWdda9r7JNLCS0uuwUlt&index=2");
+        launchBrowser(YOUTBE_URL);
     }
 
     @OnClick(R.id.send_toast)
@@ -114,12 +124,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-        isStartedFromNfc = true;
-        final String tagId = removeSpace(nfcService.getTagID(tag));
-        if (intent.hasExtra(NfcAdapter.EXTRA_TAG)) {
-            String content = nfcService.read(intent);
-            Toast.makeText(ControlTvApplication.getAppContext(), content, Toast.LENGTH_SHORT).show();
+        if (isAlreadyConnected) {
+           setYoutubeWithBrowserOnClick();
+        }else {
+            isStartedFromNfc = true;
         }
     }
 
@@ -145,16 +153,28 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private String removeSpace(String string) {
-        String str = string.replaceAll("\\s+", "");
-        Log.e(TAG, "without space : " + str);
-        return str;
-    }
 
+    private void createToastForConnexionEvent(){
+        if (isAlreadyConnected){
+            Alerter.create(this)
+                    .setTitle(getString(R.string.connexion_status))
+                    .setText("Connexion ok ...")
+                    .setBackgroundColor(R.color.colorPrimary)
+                    .show();
+        }else {
+            Alerter.create(this)
+                    .setTitle(getString(R.string.connexion_status))
+                    .setText("Connexion lost...")
+                    .setBackgroundColor(R.color.colorDanger)
+                    .show();
+        }
+
+    }
 
     @Override
     protected void onResume() {
         super.onResume();
+        mAdapter.enableForegroundDispatch(this, mPendingIntent, null, null);
     }
 
     private void launchBrowser(String url) {
@@ -166,6 +186,14 @@ public class MainActivity extends AppCompatActivity {
             public void onError(ServiceCommandError error) {
             }
         });
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (mAdapter != null) {
+            mAdapter.disableForegroundDispatch(this);
+        }
     }
 
     private ConnectableDeviceListener deviceListener = new ConnectableDeviceListener() {
@@ -217,6 +245,8 @@ public class MainActivity extends AppCompatActivity {
         public void onConnectionFailed(ConnectableDevice device, ServiceCommandError error) {
             Log.d(TAG, "onConnectFailed " + error.toString());
             connectFailed(mTV);
+            isAlreadyConnected = false;
+            createToastForConnexionEvent();
         }
 
         @Override
@@ -234,10 +264,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         private void initLauncher() {
+            isAlreadyConnected = true;
+            createToastForConnexionEvent();
             launcher = mTV.getCapability(Launcher.class);
             toastControl = mTV.getCapability(ToastControl.class);
             volumeControl = mTV.getCapability(VolumeControl.class);
-            Toast.makeText(getApplicationContext(), "Connexion ok", Toast.LENGTH_SHORT).show();
             if (isStartedFromNfc) {
                 setYoutubeWithBrowserOnClick();
             }
@@ -246,6 +277,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onDeviceDisconnected(ConnectableDevice device) {
             Log.d(TAG, "Device Disconnected");
+            createToastForConnexionEvent();
             connectEnded(mTV);
             getMyToolbar().getMenu().findItem(R.id.action_connexion).setShowAsAction(SHOW_AS_ACTION_ALWAYS);
             Toast.makeText(getApplicationContext(), "Device Disconnected", Toast.LENGTH_SHORT).show();
@@ -270,7 +302,6 @@ public class MainActivity extends AppCompatActivity {
     private void setupPicker() {
         dp = new DevicePicker(this);
         dialog = dp.getPickerDialog("Device List", new AdapterView.OnItemClickListener() {
-
 
 
             @Override
