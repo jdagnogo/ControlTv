@@ -23,6 +23,8 @@ repositories {
 }
 dependencies {
     compile 'frankiesardo:icepick:3.2.0'
+
+    compile 'com.liuguangqiang.ripplelayout:library:0.1.0'
     compile 'com.tapadoo.android:alerter:1.0.6'
     provided 'frankiesardo:icepick-processor:3.2.0'
     compile fileTree(dir: 'libs', include: ['*.jar'])
