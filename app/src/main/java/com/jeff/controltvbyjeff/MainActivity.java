@@ -80,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         ButterKnife.bind(this);
+        createToastForConnexionEvent();
         setupPicker();
         nfcService = new NFCService();
         initDiscoverManager();
@@ -304,7 +305,6 @@ public class MainActivity extends AppCompatActivity {
         dp = new DevicePicker(this);
         dialog = dp.getPickerDialog("Device List", new AdapterView.OnItemClickListener() {
 
-
             @Override
             public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
 
@@ -316,6 +316,7 @@ public class MainActivity extends AppCompatActivity {
                 dp.pickDevice(mTV);
             }
         });
+
 
         pairingAlertDialog = new AlertDialog.Builder(this)
                 .setTitle("Pairing with TV")
