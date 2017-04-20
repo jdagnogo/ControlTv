@@ -1,4 +1,4 @@
-package com.jeff.controltvbyjeff;
+package com.jeff.controltvbyjeff.activity;
 
 import android.app.AlertDialog;
 import android.app.PendingIntent;
@@ -32,6 +32,7 @@ import com.connectsdk.service.capability.ToastControl;
 import com.connectsdk.service.capability.VolumeControl;
 import com.connectsdk.service.command.ServiceCommandError;
 import com.connectsdk.service.sessions.LaunchSession;
+import com.jeff.controltvbyjeff.R;
 import com.jeff.controltvbyjeff.customlibs.CircularSeekBar;
 import com.jeff.controltvbyjeff.services.NFCService;
 import com.tapadoo.alerter.Alerter;
@@ -44,7 +45,7 @@ import butterknife.OnClick;
 
 import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
 import static android.view.MenuItem.SHOW_AS_ACTION_NEVER;
-import static com.jeff.controltvbyjeff.Constants.YOUTBE_URL;
+import static com.jeff.controltvbyjeff.utils.Constants.YOUTBE_URL;
 
 public class MainActivity extends AppCompatActivity {
 

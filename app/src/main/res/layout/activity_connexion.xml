@@ -4,7 +4,7 @@
     android:id="@+id/activity_connexion"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.jeff.controltvbyjeff.ConnexionActivity">
+    tools:context="com.jeff.controltvbyjeff.activity.ConnexionActivity">
 
     <com.skyfishjy.library.RippleBackground xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"

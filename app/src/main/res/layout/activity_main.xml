@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
 
-    tools:context="com.jeff.controltvbyjeff.MainActivity">
+    tools:context="com.jeff.controltvbyjeff.activity.MainActivity">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/my_toolbar"

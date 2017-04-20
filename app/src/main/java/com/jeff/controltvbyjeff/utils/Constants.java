@@ -1,4 +1,4 @@
-package com.jeff.controltvbyjeff;
+package com.jeff.controltvbyjeff.utils;
 
 /**
  * Created by Jeff on 18/04/2017.

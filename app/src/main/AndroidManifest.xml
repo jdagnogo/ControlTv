@@ -17,10 +17,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".MainActivity"
+            android:name=".activity.MainActivity"
             android:screenOrientation="portrait">
             <intent-filter>
-
                 <action android:name="android.nfc.action.NDEF_DISCOVERED" />
 
                 <category android:name="android.intent.category.DEFAULT" />
@@ -32,7 +31,10 @@
                 android:name="android.nfc.action.TECH_DISCOVERED"
                 android:resource="@xml/nfc_tech_filter" />
         </activity>
-        <activity android:name=".ConnexionActivity">
+        <activity android:name=".activity.ConnexionActivity">
+
+        </activity>
+        <activity android:name=".activity.TabsActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
