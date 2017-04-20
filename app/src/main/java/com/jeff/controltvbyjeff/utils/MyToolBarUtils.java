@@ -60,9 +60,10 @@ public class MyToolBarUtils {
        MorphyToolbar morphyToolbar = MorphyToolbar.builder((AppCompatActivity) activity, toolbar)
                 .withToolbarAsSupportActionBar()
                 .withTitle("Control Tv")
-                .withSubtitle("By Jeff")
+                .withSubtitle("       By Jeff")
                .withTitleColor(primaryDark)
-               .withContentExpandedMarginStart(1300)
+               .withContentExpandedMarginStart(200)
+               .withContentMarginStart(250)
                 .withHidePictureWhenCollapsed(false)
                 .build();
         return morphyToolbar;
