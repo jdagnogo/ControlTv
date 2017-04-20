@@ -17,7 +17,7 @@
             android:background="@color/colorPrimary"
             android:minHeight="@dimen/mt_toolbar_height"
             app:title=""
-            app:titleTextColor="#FFFFFF"/>
+            app:titleTextColor="@color/colorPrimaryDark"/>
 
     </android.support.design.widget.AppBarLayout>
 

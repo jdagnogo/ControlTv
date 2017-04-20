@@ -20,6 +20,10 @@ import com.jeff.controltvbyjeff.R;
 
 public class MyToolBarUtils {
 
+    static final int primary = ControlTvApplication.getAppContext().getResources().getColor(R.color.colorPrimary);
+    static final int primaryDark= ControlTvApplication.getAppContext().getResources().getColor(R.color.colorPrimaryDark);
+
+
     public static void disableAppBarDrag(AppBarLayout appBarLayout) {
         // see http://stackoverflow.com/questions/34108501/how-to-disable-scrolling-of-appbarlayout-in-coordinatorlayout
         CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) appBarLayout.getLayoutParams();
@@ -55,9 +59,10 @@ public class MyToolBarUtils {
     public static MorphyToolbar setupToolbar(Activity activity, Toolbar toolbar){
        MorphyToolbar morphyToolbar = MorphyToolbar.builder((AppCompatActivity) activity, toolbar)
                 .withToolbarAsSupportActionBar()
-                .withTitle("Work [not so] serious talk")
-                .withSubtitle("160 participants")
-                .withPicture(R.drawable.alerter_ic_face)
+                .withTitle("Control Tv")
+                .withSubtitle("By Jeff")
+               .withTitleColor(primaryDark)
+               .withContentExpandedMarginStart(1300)
                 .withHidePictureWhenCollapsed(false)
                 .build();
         return morphyToolbar;
@@ -65,8 +70,6 @@ public class MyToolBarUtils {
 
     public static void setupToolbarOnclickListener( final MorphyToolbar morphyToolbar,final FloatingActionButton floatingActionButton){
 
-        final int primary = ControlTvApplication.getAppContext().getResources().getColor(R.color.colorPrimary);
-        final int primaryDark= ControlTvApplication.getAppContext().getResources().getColor(R.color.colorPrimaryDark);
 
 
         morphyToolbar.setOnClickListener(new View.OnClickListener() {
