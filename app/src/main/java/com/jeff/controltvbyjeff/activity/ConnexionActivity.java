@@ -31,7 +31,7 @@ public class ConnexionActivity extends AppCompatActivity {
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        Intent intent = new Intent(ConnexionActivity.this,MainActivity.class);
+                        Intent intent = new Intent(ConnexionActivity.this,TabsActivity.class);
                         startActivity(intent);
                         rippleBackground.stopRippleAnimation();
                         connexion.setText(getString(R.string.Connexion));

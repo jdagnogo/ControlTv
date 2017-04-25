@@ -1,5 +1,8 @@
 package com.jeff.controltvbyjeff.activity;
 
+import android.app.PendingIntent;
+import android.content.Intent;
+import android.nfc.NfcAdapter;
 import android.os.Bundle;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CoordinatorLayout;
@@ -17,6 +20,8 @@ import android.widget.Toast;
 import com.github.badoualy.morphytoolbar.MorphyToolbar;
 import com.jeff.controltvbyjeff.R;
 import com.jeff.controltvbyjeff.fragment.MainFragment;
+import com.jeff.controltvbyjeff.services.DLNaService;
+import com.jeff.controltvbyjeff.services.NFCService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +30,7 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import eu.long1.spacetablayout.SpaceTabLayout;
 
+import static com.jeff.controltvbyjeff.utils.Constants.YOUTBE_URL;
 import static com.jeff.controltvbyjeff.utils.MyToolBarUtils.disableAppBarDrag;
 import static com.jeff.controltvbyjeff.utils.MyToolBarUtils.hideFab;
 import static com.jeff.controltvbyjeff.utils.MyToolBarUtils.setupToolbar;
@@ -33,24 +39,61 @@ import static com.jeff.controltvbyjeff.utils.MyToolBarUtils.setupToolbarOnclickL
 public class TabsActivity extends AppCompatActivity {
     SpaceTabLayout tabLayout;
 
-    @Bind(R.id.toolbar)
     Toolbar toolbar;
 
-    @Bind(R.id.layout_app_bar)
     AppBarLayout appBarLayout;
 
     @Bind(R.id.fab_photo)
     FloatingActionButton floatingActionButton;
 
-
     MorphyToolbar morphyToolbar;
+    boolean isStartedFromNfc = false;
+
+    private static DLNaService dlNaService;
+
+    PendingIntent mPendingIntent;
+    private NFCService nfcService;
+    private NfcAdapter mAdapter;
+
+
+    public void setYoutubeWithBrowserOnClick() {
+        getDlNaService().launchBrowser(YOUTBE_URL);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mAdapter.enableForegroundDispatch(this, mPendingIntent, null, null);
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        if (getDlNaService().isAlreadyConnected()) {
+            setYoutubeWithBrowserOnClick();
+        } else {
+            isStartedFromNfc = true;
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_tabs);
         ButterKnife.bind(this);
-        toolbar = (Toolbar)findViewById(R.id.toolbar);
+        appBarLayout = (AppBarLayout)findViewById(R.id.layout_app_bar);
+        nfcService = new NFCService();
+        mAdapter = NfcAdapter.getDefaultAdapter(this);
+        if (mAdapter == null) {
+            //nfc not support your device.
+            return;
+        }
+        mPendingIntent = PendingIntent.getActivity(this, 0, new Intent(this,
+                getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
+
+        dlNaService = new DLNaService(this);
+        dlNaService.initService();
+        dlNaService.createDialog();
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
 
@@ -87,6 +130,14 @@ public class TabsActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        if (mAdapter != null) {
+            mAdapter.disableForegroundDispatch(this);
+        }
+    }
+
+    @Override
     protected void onSaveInstanceState(Bundle outState) {
         tabLayout.saveState(outState);
         super.onSaveInstanceState(outState);
@@ -114,8 +165,8 @@ public class TabsActivity extends AppCompatActivity {
     private void initToolbar() {
         disableAppBarDrag(appBarLayout);
         hideFab(floatingActionButton);
-        morphyToolbar = setupToolbar(this,toolbar);
-        setupToolbarOnclickListener(morphyToolbar,floatingActionButton);
+        morphyToolbar = setupToolbar(this, toolbar);
+        setupToolbarOnclickListener(morphyToolbar, floatingActionButton);
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_HOME_AS_UP
@@ -123,5 +174,9 @@ public class TabsActivity extends AppCompatActivity {
                     | ActionBar.DISPLAY_SHOW_CUSTOM);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
+    }
+
+    public static DLNaService getDlNaService() {
+        return dlNaService;
     }
 }
