@@ -20,6 +20,7 @@ import android.widget.Toast;
 import com.github.badoualy.morphytoolbar.MorphyToolbar;
 import com.jeff.controltvbyjeff.R;
 import com.jeff.controltvbyjeff.fragment.MainFragment;
+import com.jeff.controltvbyjeff.services.ConnectionObserver;
 import com.jeff.controltvbyjeff.services.DLNaService;
 import com.jeff.controltvbyjeff.services.NFCService;
 
@@ -36,11 +37,13 @@ import static com.jeff.controltvbyjeff.utils.MyToolBarUtils.hideFab;
 import static com.jeff.controltvbyjeff.utils.MyToolBarUtils.setupToolbar;
 import static com.jeff.controltvbyjeff.utils.MyToolBarUtils.setupToolbarOnclickListener;
 
-public class TabsActivity extends AppCompatActivity {
+public class TabsActivity extends AppCompatActivity implements ConnectionObserver {
     SpaceTabLayout tabLayout;
 
+    @Bind(R.id.toolbar)
     Toolbar toolbar;
 
+    @Bind(R.id.layout_app_bar)
     AppBarLayout appBarLayout;
 
     @Bind(R.id.fab_photo)
@@ -79,6 +82,7 @@ public class TabsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_tabs);
         ButterKnife.bind(this);
         appBarLayout = (AppBarLayout)findViewById(R.id.layout_app_bar);
         nfcService = new NFCService();
@@ -90,7 +94,7 @@ public class TabsActivity extends AppCompatActivity {
         mPendingIntent = PendingIntent.getActivity(this, 0, new Intent(this,
                 getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
 
-        dlNaService = new DLNaService(this);
+        dlNaService = new DLNaService(this,this);
         dlNaService.initService();
         dlNaService.createDialog();
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -178,5 +182,15 @@ public class TabsActivity extends AppCompatActivity {
 
     public static DLNaService getDlNaService() {
         return dlNaService;
+    }
+
+    @Override
+    public void onConnection() {
+        // change something on view
+    }
+
+    @Override
+    public void onDisconnection() {
+
     }
 }

@@ -241,8 +241,10 @@ public class DLNaService {
         });
     }
 
-    public DLNaService(Activity activity) {
+    public DLNaService(Activity activity, ConnectionObserver observable) {
         this.activity = activity;
+        this.observer = observable;
+
     }
 
     public void initService() {

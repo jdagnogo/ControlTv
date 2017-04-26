@@ -3,7 +3,6 @@ package com.jeff.controltvbyjeff.activity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
-import com.jeff.controltvbyjeff.R;
 import com.jeff.controltvbyjeff.services.ConnectionObserver;
 
 import butterknife.ButterKnife;
@@ -16,7 +15,7 @@ public class MainActivity extends AppCompatActivity implements ConnectionObserve
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+       // setContentView(R.layout.activity_main);
 
         ButterKnife.bind(this);
 

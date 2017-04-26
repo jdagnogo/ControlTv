@@ -40,10 +40,11 @@ public class MainFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        initView(container);
+
 
         View view= inflater.inflate(R.layout.fragment_main, container, false);
-        ButterKnife.bind(this, container);
+        ButterKnife.bind(this, view);
+        initView(view);
         return view;
     }
 
@@ -58,8 +59,8 @@ public class MainFragment extends Fragment {
 
     }
 
-    private void initView(ViewGroup viewGroup) {
-        seekbar = (CircularSeekBar) viewGroup.findViewById(R.id.circularSeekBar1);
+    private void initView(View view) {
+        seekbar = (CircularSeekBar) view.findViewById(R.id.circularSeekBar1);
         seekbar.getProgress();
         seekbar.setProgress(50);
         seekbar.setOnSeekBarChangeListener(new CircleSeekBarListener());
